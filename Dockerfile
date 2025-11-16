@@ -57,12 +57,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install uv && uv pip install --system wheel -Ue ".[dev]"
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    uv python -m build
+    python -m build
 
 # Install wheel + extras
 RUN --mount=type=cache,target=/root/.cache/pip \
-    uv pip install --system dist/pretalx*whl
-
+    python -m pip install dist/pretalx*whl
 # Final stage
 FROM base
 
