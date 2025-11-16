@@ -21,11 +21,13 @@ Official Docker image builder for [pretalx](https://github.com/pretalx/pretalx),
    - `POSTGRES_PASSWORD`: A secure database password
    - `PRETALX_SECRET_KEY`: A random secret key (generate with `openssl rand -base64 32`)
    - `PRETALX_SITE_URL`: Your site URL (e.g., `https://pretalx.example.com`)
+   - `COMPOSE_PROFILES=local-db`: Keeps the bundled PostgreSQL service enabled (default). Clear the value to use an external database and set `POSTGRES_HOST`.
 
 4. **Start the services**
    ```bash
    docker compose up -d
    ```
+   With `COMPOSE_PROFILES=local-db` this launches the bundled PostgreSQL container. If you cleared the profile and set `POSTGRES_HOST`, the stack connects to your external database instead.
 
 5. **Create a superuser**
    ```bash
@@ -60,6 +62,14 @@ docker run -d -p 8000:8000 \
 
 See [.env.example](.env.example) for all available configuration options.
 
+#### Database Options
+- `COMPOSE_PROFILES=local-db`: Start the bundled PostgreSQL service (default). Clear the value to disable the container and connect to an external database.
+- `POSTGRES_HOST`: PostgreSQL hostname (default: `db`). When you disable the bundled database, set this to your external host.
+- `POSTGRES_PORT`: PostgreSQL port (default: `5432`)
+- `POSTGRES_DB`: Database name (default: `pretalx`)
+- `POSTGRES_USER`: Database user (default: `pretalx`)
+- `POSTGRES_PASSWORD`: Database password (required)
+
 #### Required Variables
 - `POSTGRES_PASSWORD`: Database password
 - `PRETALX_SECRET_KEY`: Django secret key
@@ -88,8 +98,15 @@ The Docker Compose setup includes:
 - **migrate**: One-time migration service (runs before other services)
 - **web**: Gunicorn WSGI server on port 8000
 - **worker**: Celery background task worker
-- **db**: PostgreSQL 15 database
+- **db**: PostgreSQL 15 database (enabled when `COMPOSE_PROFILES` includes `local-db`)
 - **redis**: Redis for caching and Celery
+
+### Using an External PostgreSQL Database
+
+1. Edit `.env`, clear the `COMPOSE_PROFILES` value (or comment it out) so the bundled `db` service is not started.
+2. Set `POSTGRES_HOST` (and optionally `POSTGRES_PORT`) to point at your external database.
+3. Ensure `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` match the external database credentials.
+4. Start the stack with `docker compose up -d`. Docker Compose skips the `db` service automatically, and migrate/web/worker wait until they can connect to the external database.
 
 ## Production Deployment
 
