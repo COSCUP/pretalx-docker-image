@@ -61,9 +61,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Install wheel + extras
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --prefix=/install \
-       gunicorn packaging \
-       dist/pretalx*.whl[postgres,redis]
+    for f in /build/dist/pretalx*.whl; do pip install --prefix=/install gunicorn packaging "$f[postgres,redis]"; done
 
 # Final stage
 FROM base
