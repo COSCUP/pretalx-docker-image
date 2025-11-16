@@ -117,7 +117,7 @@ ENV PRETALX_CONFIG_FILE=/tmp/pretalx.build.cfg \
 
 # Run migrate and rebuild using the default (SQLite) settings
 RUN python -m pretalx migrate
-RUN python -m pretalx rebuild
+RUN python -m pretalx rebuild --npm-install
 
 # Now, copy the real configuration file for runtime
 COPY --chmod=644 deployment/pretalx.cfg /etc/pretalx/pretalx.cfg
