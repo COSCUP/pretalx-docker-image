@@ -70,6 +70,7 @@ case "$1" in
         wait_for_db
         python -m pretalx check --deploy
         python -m pretalx migrate --noinput
+        python -m pretalx rebuild --npm-install
         ;; 
     "manage")
         wait_for_db
