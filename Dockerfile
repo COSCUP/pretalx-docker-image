@@ -44,9 +44,11 @@ ENV LC_ALL=en_US.UTF-8 \
     LANGUAGE=en_US:en
 
 # Build stage
-FROM base as builder
+FROM base
 
 ARG PRETALX_VERSION
+ARG PRETALX_UID
+ARG PRETALX_GID
 
 # Clone target pretalx repository
 WORKDIR /build
@@ -62,23 +64,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Install wheel + extras
 RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install dist/pretalx*whl
-# Final stage
-FROM base
-
-ARG PRETALX_UID
-ARG PRETALX_GID
-
-
-RUN pip install packaging
 
 # Create pretalx user
 RUN groupadd -f -g ${PRETALX_GID} pretalx && \
     useradd -u ${PRETALX_UID} -g ${PRETALX_GID} -m -d /pretalx -s /bin/bash pretalx && \
     mkdir -p /data/media /data/static /data/logs /public/media /public/static && \
     chown -R pretalx:pretalx /data /public
-
-# Copy installed dependencies and application
-COPY --from=builder /install /usr/local
 
 # Create deployment directory
 RUN mkdir -p /etc/pretalx
