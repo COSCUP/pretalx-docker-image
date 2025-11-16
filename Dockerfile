@@ -54,12 +54,16 @@ ARG PRETALX_VERSION
 WORKDIR /build
 RUN git clone --depth 1 --branch ${PRETALX_VERSION} https://github.com/COSCUP/pretalx.git .
 
-# Install build dependencies and build the wheel
-RUN pip install --upgrade pip build && \
+# Install build deps + build wheel
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip build && \
     python -m build --wheel
 
-# Install the built wheel with production extras, and gunicorn
-RUN for f in /build/dist/pretalx*.whl; do pip install --prefix=/install gunicorn packaging "$f[postgres,redis]"; done
+# Install wheel + extras
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install \
+       gunicorn packaging \
+       dist/pretalx*.whl[postgres,redis]
 
 # Final stage
 FROM base
