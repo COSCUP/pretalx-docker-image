@@ -30,8 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-
-
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
@@ -54,14 +52,16 @@ ARG PRETALX_VERSION
 WORKDIR /build
 RUN git clone --depth 1 --branch ${PRETALX_VERSION} https://github.com/COSCUP/pretalx.git .
 
-# Install build deps + build wheel
+# Install build deps
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip build && \
-    python -m build --wheel
+    python -m pip install uv && uv pip install --system wheel -Ue ".[dev]"
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    uv python -m build
 
 # Install wheel + extras
 RUN --mount=type=cache,target=/root/.cache/pip \
-    for f in /build/dist/pretalx*.whl; do pip install --prefix=/install gunicorn packaging "$f[postgres,redis]"; done
+    uv pip install --system dist/pretalx*whl
 
 # Final stage
 FROM base
