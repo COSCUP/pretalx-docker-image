@@ -1,7 +1,5 @@
 # syntax=docker/dockerfile:1
 ARG PRETALX_VERSION=main
-ARG PRETALX_UID=1000
-ARG PRETALX_GID=1000
 
 # Base image with Python 3.12
 FROM python:3.12-slim as base
@@ -47,8 +45,6 @@ ENV LC_ALL=en_US.UTF-8 \
 FROM base
 
 ARG PRETALX_VERSION
-ARG PRETALX_UID
-ARG PRETALX_GID
 
 # Clone target pretalx repository
 WORKDIR /build
@@ -56,7 +52,7 @@ RUN git clone --depth 1 --branch ${PRETALX_VERSION} https://github.com/COSCUP/pr
 
 # Install build deps
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install uv && uv pip install --system wheel -Ue ".[dev]"
+    python -m pip install uv && uv pip install --system wheel psycopg2 redis gunicorn -Ue ".[dev]"
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     python -m build
@@ -66,10 +62,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install dist/pretalx*whl
 
 # Create pretalx user
-RUN groupadd -f -g ${PRETALX_GID} pretalx && \
-    useradd -u ${PRETALX_UID} -g ${PRETALX_GID} -m -d /pretalx -s /bin/bash pretalx && \
-    mkdir -p /data/media /data/static /data/logs /public/media /public/static && \
-    chown -R pretalx:pretalx /data /public
+RUN mkdir /data && \
+    mkdir /static && \
+    groupadd -g 999 pretalx && \
+    useradd -r -u 999 -g pretalx -d /pretalx -ms /bin/bash pretalx && \
+    chown -R pretalx:pretalx /data && \
+    chown -R pretalx:pretalx /static
 
 # Create deployment directory
 RUN mkdir -p /etc/pretalx
@@ -100,20 +98,20 @@ ssl = False\n\
 #backend = redis://redis:6379/2\n\
 #broker = redis://redis:6379/3\n\
 [filesystem]\n\
-media = /public/media\n\
-static = /public/static" > /tmp/pretalx.build.cfg
+static = /static" > /tmp/pretalx.build.cfg
 
 # Set environment to use the temporary config
 ENV PRETALX_CONFIG_FILE=/tmp/pretalx.build.cfg \
     DJANGO_SETTINGS_MODULE=pretalx.settings
 
 # Run migrate and rebuild using the default (SQLite) settings
-RUN python -m pretalx migrate
+# RUN python -m pretalx migrate
 RUN python -m pretalx rebuild --npm-install
 
 # Now, copy the real configuration file for runtime
 COPY --chmod=644 deployment/pretalx.cfg /etc/pretalx/pretalx.cfg
 ENV PRETALX_CONFIG_FILE=/etc/pretalx/pretalx.cfg
+
 
 WORKDIR /pretalx
 
@@ -121,7 +119,7 @@ WORKDIR /pretalx
 EXPOSE 8000
 
 # Set volumes
-VOLUME ["/data", "/public"]
+VOLUME ["/data", "/static"]
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

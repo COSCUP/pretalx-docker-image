@@ -37,10 +37,6 @@ All configuration is done via environment variables.
 - `GUNICORN_BIND_ADDR`: Bind address (default: 0.0.0.0:8000)
 - `GUNICORN_FORWARDED_ALLOW_IPS`: Trusted proxy IPs (default: *)
 
-### Filesystem Configuration (Optional)
-- `PRETALX_FILESYSTEM_MEDIA`: Media files path (default: /public/media)
-- `PRETALX_FILESYSTEM_STATIC`: Static files path (default: /public/static)
-
 ### Database
 - `POSTGRES_DB`: Database name (default: pretalx)
 - `POSTGRES_USER`: Database user (default: pretalx)

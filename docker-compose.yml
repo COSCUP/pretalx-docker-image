@@ -6,8 +6,7 @@ x-pretalx-image: &pretalx-image
     context: .
     args:
       PRETALX_VERSION: ${PRETALX_VERSION:-main}
-      PRETALX_UID: ${PRETALX_UID:-1000}
-      PRETALX_GID: ${PRETALX_GID:-1000}
+
 
 x-pretalx-env: &pretalx-env
   POSTGRES_DB: ${POSTGRES_DB:-pretalx}
@@ -21,8 +20,6 @@ x-pretalx-env: &pretalx-env
   CELERY_BROKER: ${CELERY_BROKER:-redis://redis:6379/3}
   PRETALX_SITE_URL: ${PRETALX_SITE_URL:-http://localhost}
   PRETALX_SECRET_KEY: ${PRETALX_SECRET_KEY:?Please set PRETALX_SECRET_KEY}
-  PRETALX_FILESYSTEM_MEDIA: ${PRETALX_FILESYSTEM_MEDIA:-/public/media}
-  PRETALX_FILESYSTEM_STATIC: ${PRETALX_FILESYSTEM_STATIC:-/public/static}
   PRETALX_MAIL_FROM: ${PRETALX_MAIL_FROM:-pretalx@localhost}
   PRETALX_MAIL_HOST: ${PRETALX_MAIL_HOST:-localhost}
   PRETALX_MAIL_PORT: ${PRETALX_MAIL_PORT:-25}
@@ -33,7 +30,6 @@ x-pretalx-env: &pretalx-env
 
 x-pretalx-volumes: &pretalx-volumes
   - pretalx_data:/data
-  - pretalx_public:/public
 
 services:
   db:
@@ -62,6 +58,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+      start_period: 1s
 
   migrate:
     <<: *pretalx-image
