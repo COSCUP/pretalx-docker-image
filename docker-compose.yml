@@ -29,7 +29,7 @@ x-pretalx-env: &pretalx-env
   PRETALX_MAIL_SSL: ${PRETALX_MAIL_SSL:-False}
 
 x-pretalx-volumes: &pretalx-volumes
-  - ./data:/data
+  - ${PRETALX_DATA_DIR:?Please set PRETALX_DATA_DIR}:/data
 
 services:
   db:
