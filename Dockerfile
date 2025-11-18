@@ -108,6 +108,9 @@ ENV PRETALX_CONFIG_FILE=/tmp/pretalx.build.cfg \
 # RUN python -m pretalx migrate
 RUN python -m pretalx rebuild --npm-install
 
+RUN chown -R pretalx:pretalx /data && \
+    chown -R pretalx:pretalx /static
+
 # Now, copy the real configuration file for runtime
 COPY --chmod=644 deployment/pretalx.cfg /etc/pretalx/pretalx.cfg
 ENV PRETALX_CONFIG_FILE=/etc/pretalx/pretalx.cfg
